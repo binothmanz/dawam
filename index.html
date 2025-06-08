@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>جدول دوام الكول سنتر</title>
+  <style>
+
+  body {
+    font-family: 'Tahoma', sans-serif;
+    direction: rtl;
+    padding: 20px;
+    background: linear-gradient(to bottom, #e0f7fa, #ffffff);
+    font-weight: bold;
+  }
+
+  h2 {
+    text-align: center;
+    color: #0d47a1;
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+
+  .form-container {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease;
+  }
+
+  .form-container:hover {
+    box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+  }
+
+  h3 {
+    margin-top: 0;
+    color: #00796b;
+    text-align: center;
+  }
+
+  select, input[type="text"], input[type="number"], input[type="date"] {
+    padding: 8px;
+    margin: 6px 4px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: auto;
+    transition: border 0.3s ease;
+  }
+
+  select:focus, input:focus {
+    border-color: #2196f3;
+    outline: none;
+  }
+
+  select[multiple] {
+    height: 100px;
+    width: 100%;
+  }
+
+  /* إخفاء الجدول الأصلي */
+  table {
+    display: none;
+  }
+
+  /* حاوية البطاقات */
+  #cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+  }
+
+  .card {
+    background: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 20px;
+    width: 280px;
+    font-size: 15px;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .card div {
+    margin-bottom: 10px;
+  }
+
+  .card div span.label {
+    font-weight: bold;
+    color: #0d47a1;
+    margin-left: 5px;
+  }
+
+  .buttons-group {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  button {
+    padding: 6px 10px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 13px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    flex: 1 1 45%;
+    text-align: center;
+  }
+
+  button:hover {
+    transform: scale(1.05);
+  }
+
+  button.delete {
+    background-color: #e53935;
+  }
+
+  button.edit {
+    background-color: #fb8c00;
+  }
+
+  button.send {
+    background-color: #00897b;
+  }
+
+  button.sms {
+    background-color: #3949ab;
+  }
+
+  button:not(.delete):hover {
+    background-color: #00695c;
+  }
+
+  button.delete:hover {
+    background-color: #c62828;
+  }
+
+  label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  </style>
+</head>
+<body>
+  <h2>جدول دوام الكول سنتر</h2>
+
+  <div class="form-container">
+    <h3>إضافة دوام جديد</h3>
+    <select id="day">
+      <option>الأحد</option>
+      <option>الإثنين</option>
+      <option>الثلاثاء</option>
+      <option>الأربعاء</option>
+      <option>الخميس</option>
+      <option>الجمعة</option>
+      <option>السبت</option>
+    </select>
+    <input type="date" id="date">
+    <select id="period">
+      <option>الصباحية</option>
+      <option>المسائية</option>
+      <option>فترة واحدة</option>
+    </select>
+    من <input type="number" id="from" min="1" max="12">
+    إلى <input type="number" id="to" min="1" max="12">
+    <br>
+    <label>اختر الموظفين :</label><br>
+    <select id="employee" multiple>
+      <option>أسامة</option>
+      <option>عبدالواسع</option>
+      <option>يوسف</option>
+      <option>عبدالله</option>
+      <option>عبدالعزيز</option>
+      <option>رياض</option>
+    </select>
+    <br>
+    <button onclick="addRow()">حفظ الإضافة</button>
+  </div>
+
+  <!-- الجدول الأصلي مخفي، سنعرض البيانات كبطاقات هنا -->
+  <div id="cards-container">
+    <!-- بطاقات البيانات ستُضاف هنا ديناميكياً -->
+  </div>
+
+<script>
+  window.onload = function() {
+    loadData();
+  }
+
+  function saveData() {
+    let cardsContainer = document.getElementById('cards-container');
+    let data = [];
+    for (let card of cardsContainer.children) {
+      data.push({
+        day: card.querySelector('.day').textContent,
+        date: card.querySelector('.date').textContent,
+        period: card.querySelector('.period').textContent,
+        from: card.querySelector('.from').textContent,
+        to: card.querySelector('.to').textContent,
+        employee: card.querySelector('.employee').textContent
+      });
+    }
+    localStorage.setItem('scheduleData', JSON.stringify(data));
+  }
+
+  function loadData() {
+    const dataStr = localStorage.getItem('scheduleData');
+    if (!dataStr) return;
+    const data = JSON.parse(dataStr);
+    const cardsContainer = document.getElementById('cards-container');
+    cardsContainer.innerHTML = '';
+    data.forEach(item => {
+      const card = createCard(item);
+      cardsContainer.appendChild(card);
+    });
+  }
+
+  function createCard(item) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div><span class="label">اليوم:</span> <span class="day">${item.day}</span></div>
+      <div><span class="label">التاريخ:</span> <span class="date">${item.date}</span></div>
+      <div><span class="label">الفترة:</span> <span class="period">${item.period}</span></div>
+      <div><span class="label">من:</span> <span class="from">${item.from}</span></div>
+      <div><span class="label">إلى:</span> <span class="to">${item.to}</span></div>
+      <div><span class="label">الموظف:</span> <span class="employee">${item.employee}</span></div>
+      <div class="buttons-group">
+        <button class="edit" onclick="editCard(this)">تعديل</button>
+        <button class="delete" onclick="deleteCard(this)">حذف</button>
+        <button class="send" onclick="sendCard(this)">إرسال واتساب</button>
+        <button class="sms" onclick="smsCard(this)">إرسال رسالة نصية</button>
+      </div>
+    `;
+    return card;
+  }
+
+  function addRow() {
+    const day = document.getElementById('day').value;
+    const date = document.getElementById('date').value;
+    const period = document.getElementById('period').value;
+    const from = document.getElementById('from').value;
+    const to = document.getElementById('to').value;
+    const employeeSelect = document.getElementById('employee');
+
+    if (!date || !from || !to) {
+      alert('يرجى تعبئة جميع الحقول بشكل صحيح.');
+      return;
+    }
+
+    let employees = Array.from(employeeSelect.selectedOptions).map(opt => opt.text).join(', ');
+    if (!employees) {
+      alert('يرجى اختيار موظف واحد على الأقل.');
+      return;
+    }
+
+    const newData = {
+      day,
+      date,
+      period,
+      from,
+      to,
+      employee: employees
+    };
+
+    const cardsContainer = document.getElementById('cards-container');
+    cardsContainer.appendChild(createCard(newData));
+    saveData();
+
+    // إعادة تعيين الحقول
+    document.getElementById('date').value = '';
+    document.getElementById('from').value = '';
+    document.getElementById('to').value = '';
+    employeeSelect.selectedIndex = -1;
+  }
+
+  function deleteCard(btn) {
+    if (!confirm('هل أنت متأكد من حذف هذا السجل؟')) return;
+    const card = btn.closest('.card');
+    card.remove();
+    saveData();
+  }
+
+  function editCard(btn) {
+    const card = btn.closest('.card');
+    const day = card.querySelector('.day').textContent;
+    const date = card.querySelector('.date').textContent;
+    const period = card.querySelector('.period').textContent;
+    const from = card.querySelector('.from').textContent;
+    const to = card.querySelector('.to').textContent;
+    const employee = card.querySelector('.employee').textContent;
+
+    // تعبئة الحقول بالقيم الحالية
+    document.getElementById('day').value = day;
+    document.getElementById('date').value = date;
+    document.getElementById('period').value = period;
+    document.getElementById('from').value = from;
+    document.getElementById('to').value = to;
+
+    // اختيار الموظفين
+    const employeeSelect = document.getElementById('employee');
+    Array.from(employeeSelect.options).forEach(opt => {
+      opt.selected = employee.includes(opt.text);
+    });
+
+    // حذف البطاقة الأصلية ليتم استبدالها بعد الحفظ
+    card.remove();
+    saveData();
+  }
+
+  function sendCard(btn) {
+    const card = btn.closest('.card');
+    const day = card.querySelector('.day').textContent;
+    const date = card.querySelector('.date').textContent;
+    const period = card.querySelector('.period').textContent;
+    const from = card.querySelector('.from').textContent;
+    const to = card.querySelector('.to').textContent;
+    const employee = card.querySelector('.employee').textContent;
+
+    // نص الرسالة مع إيموجي مخصص للواتساب
+    const message = `📅 التاريخ: ${date} (${day})
+⏰ الفترة: ${period}
+🕒 من: ${from} إلى: ${to}
+👤 الموظف: ${employee}`;
+
+    // رابط فتح واتساب مع الرسالة
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  }
+
+  function smsCard(btn) {
+    const card = btn.closest('.card');
+    const day = card.querySelector('.day').textContent;
+    const date = card.querySelector('.date').textContent;
+    const period = card.querySelector('.period').textContent;
+    const from = card.querySelector('.from').textContent;
+    const to = card.querySelector('.to').textContent;
+    const employee = card.querySelector('.employee').textContent;
+
+    const message = `📅 التاريخ: ${date} (${day})
+⏰ الفترة: ${period}
+🕒 من: ${from} إلى: ${to}
+👤 الموظف: ${employee}`;
+
+    // فتح تطبيق الرسائل النصية (SMS) مع نص الرسالة
+    window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
+  }
+</script>
+
+</body>
+</html>
