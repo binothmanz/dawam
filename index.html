@@ -260,7 +260,7 @@
       return;
     }
 
-    let employees = Array.from(employeeSelect.selectedOptions).map(opt => opt.text).join(', ');
+    let employees = Array.from(employeeSelect.selectedOptions).map(opt => opt.text).join(' + ');
     if (!employees) {
       alert('يرجى اختيار موظف واحد على الأقل.');
       return;
